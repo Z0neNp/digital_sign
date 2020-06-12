@@ -1,3 +1,4 @@
+import math
 import random
 
 class RSA:
@@ -41,16 +42,43 @@ class RSA:
     # Each element in the reduced_residual_set is relatively prime to N, GCD(element, N) = 1.
     return (self.primary_first - 1) * (self.primary_second - 1)
 
+  def decrypt_msg(self, encrypted_msg):
+    result = ""
+    for char in encrypted_msg:
+      result = result + self._decrypt(ord(char))
+    return result
+
+  def encrypt_msg(self, plain_msg):
+    result = ""
+    for char in plain_msg:
+      result = result + self._encrypt(ord(char))
+    return result
+
   # private
 
-  def _fast_exponentiation(self, a, b, n):
-    # TODO continue
+  def _decrypt(self, encrypted):
+    return self._fast_exponentiation(decrypted, self.private_index)
+
+  def _encrypt(self, plain):
+    return self._fast_exponentiation(plain, self.public_index)
+
+  def _fast_exponentiation(self, a, b):
+    n = self.reduced_residual_set
+    if b == 0:
+      return 1
+    if b % 2 == 0:
+      temp = self._fast_exponentiation(a, b / 2, n)
+      return self._residue(temp, n) * self._residue(temp, n)
+    else:
+      temp = self._fast_exponentiation(a, b - 1, n)
+      return self._residue(a, n) * self._residue(temp, n)
+
 
   def _gcd(self, a, b):
     if b == 0:
       return a
     else:
-      return self._gcd(b, a%b)
+      return self._gcd(b, a % b)
 
   def _private_index_gen(self):
     result = None
@@ -62,7 +90,8 @@ class RSA:
         result = potential_result
       potential_result += 1
       if potential_result >= self.reduced_residual_set:
-        raise RuntimeError(f"There is no legal private index in the range (1,{self.reduced_residual_set})")
+        err_msg = f"There is no legal private index in the range (1,{self.reduced_residual_set})"
+        raise RuntimeError(err_msg)
     return result
 
   def _public_index_gen(self):
@@ -72,3 +101,6 @@ class RSA:
       if self._gcd(self.reduced_residual_set(), potential_result) == 1:
         result = potential_result
     return result
+
+  def _residue(self, a, b):
+    return a - math.floor(a / b) * b
