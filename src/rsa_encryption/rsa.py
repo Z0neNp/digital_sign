@@ -7,6 +7,7 @@ import random
 
 class RSA:
   def __init__(self):
+    # Tested
     self._primary_first = None
     self._primary_second = None
     self._private_index = None
