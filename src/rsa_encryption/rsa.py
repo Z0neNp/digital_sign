@@ -1,10 +1,6 @@
 import math
 import random
 
-# TODO
-# 1. make more constructors, with private, public keys & primary numbers
-# 2. test message encryption decryption, take into account "" and None and not a String
-
 class RSA:
   def __init__(self):
     # Tested
@@ -17,6 +13,7 @@ class RSA:
 
   @classmethod
   def with_primary_numbers(cls, first, second):
+    # Tested
     try:
       result = RSA()
       result.primary_first = first
@@ -24,16 +21,17 @@ class RSA:
       result._primary_numbers_valid()
       return result
     except RuntimeError as err:
-      raise RuntimeError(f"RSA failed at with_primary_numbers().{str(err)}")
+      raise RuntimeError(f"RSA failed at with_primary_numbers().\n{str(err)}")
 
   @classmethod
   def with_public_key(cls, key):
+    # Tested
     try:
       result = RSA()
       result._key_legal(key)
       return result
     except RuntimeError as err:
-      raise RuntimeError(f"RSA failed at with_public_key().{str(err)}")
+      raise RuntimeError(f"RSA failed at with_public_key().\n{str(err)}")
 
   @property
   def n(self):
@@ -89,7 +87,7 @@ class RSA:
         self._public_index = self._public_index_gen()
       return self._public_index
     except RuntimeError as err:
-      raise RuntimeError(f"RSA failed at public_index().\n#{str(err)}")
+      raise RuntimeError(f"RSA failed at public_index().\n{str(err)}")
 
   @property
   def public_key(self):
@@ -107,7 +105,7 @@ class RSA:
         self._reduced_residual_set = (self.primary_first - 1) * (self.primary_second - 1)
       return self._reduced_residual_set
     except RuntimeError as err:
-      raise RuntimeError(f"RSA failed at reduced_residual_set.{str(err)}")
+      raise RuntimeError(f"RSA failed at reduced_residual_set.\n{str(err)}")
 
   def decrypt_msg(self, encrypted_msg):
     # Tested
