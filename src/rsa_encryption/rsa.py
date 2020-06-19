@@ -29,6 +29,8 @@ class RSA:
     try:
       result = RSA()
       result._key_legal(key)
+      result._public_index = key[0]
+      result._n = key[1]
       return result
     except RuntimeError as err:
       raise RuntimeError(f"RSA failed at with_public_key().\n{str(err)}")
@@ -77,7 +79,7 @@ class RSA:
   @property
   def private_key(self):
     #  No test
-    return (self.private_index, self.reduced_residual_set)
+    return (self.private_index, self.n)
 
   @property
   def public_index(self):
@@ -92,7 +94,7 @@ class RSA:
   @property
   def public_key(self):
     # No test
-    return (self.public_index, self.reduced_residual_set)
+    return (self.public_index, self.n)
 
   @property
   def reduced_residual_set(self):
