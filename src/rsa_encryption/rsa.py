@@ -12,12 +12,36 @@ class RSA:
     self._primary_second = None
     self._private_index = None
     self._public_index = None
+    self._n = None
+    self._reduced_residual_set = None
+
+  @classmethod
+  def with_primary_numbers(cls, first, second):
+    try:
+      result = RSA()
+      result.primary_first = first
+      result.primary_second = second
+      result._primary_numbers_valid()
+      return result
+    except RuntimeError as err:
+      raise RuntimeError(f"RSA failed at with_primary_numbers().{str(err)}")
+
+  @classmethod
+  def with_public_key(cls, key):
+    try:
+      result = RSA()
+      result._key_legal(key)
+      return result
+    except RuntimeError as err:
+      raise RuntimeError(f"RSA failed at with_public_key().{str(err)}")
 
   @property
   def n(self):
     # Tested
     self._primary_numbers_valid()
-    return self.primary_first * self.primary_second
+    if self._n is None:
+      self._n = self.primary_first * self.primary_second
+    return self._n
 
   @property
   def primary_first(self):
@@ -77,30 +101,48 @@ class RSA:
     # N = primary_first * primary_second
     # Each element in the reduced_residual_set is relatively prime to N, GCD(element, N) = 1.
     # Tested
-    self._primary_numbers_valid()
-    return (self.primary_first - 1) * (self.primary_second - 1)
+    try:
+      self._primary_numbers_valid()
+      if self._reduced_residual_set is None:
+        self._reduced_residual_set = (self.primary_first - 1) * (self.primary_second - 1)
+      return self._reduced_residual_set
+    except RuntimeError as err:
+      raise RuntimeError(f"RSA failed at reduced_residual_set.{str(err)}")
 
   def decrypt_msg(self, encrypted_msg):
-    result = ""
-    for char in encrypted_msg:
-      result = result + self._decrypt(ord(char))
-    return result
+    # Tested
+    try:
+      if not type(encrypted_msg) is list:
+        raise RuntimeError(f"Expected encrypted message to be a List.")
+      result = ""
+      for encrypted_char in encrypted_msg:
+        result = result + self._decrypt(encrypted_char)
+      return result
+    except RuntimeError as err:
+      raise RuntimeError(f"RSA failed at decrypt_msg().\n{str(err)}")
 
   def encrypt_msg(self, plain_msg):
-    result = ""
-    for char in plain_msg:
-      result = result + self._encrypt(ord(char))
-    return result
+    # Tested
+    try:
+      if not type(plain_msg) is str:
+        raise RuntimeError("Expected plain message to be a String.")
+      result = []
+      if len(plain_msg) > 0:
+        for char in plain_msg:
+          result.append(self._encrypt(char))
+      return result
+    except RuntimeError as err:
+      raise RuntimeError(f"RSA failed at encrypt_msg().\n{str(err)}")
 
   # private
 
   def _decrypt(self, encrypted):
     # Tested
-    return chr(self._fast_exponentiation(encrypted, self.private_index, self.n))
+    return chr(self._fast_exponentiation(encrypted, self.public_index, self.n))
 
   def _encrypt(self, plain):
     # Tested
-    return self._fast_exponentiation(plain, self.public_index, self.n)
+    return self._fast_exponentiation(ord(plain), self.private_index, self.n)
 
   def _fast_exponentiation(self, a, b, n):
     # Tested
@@ -120,15 +162,28 @@ class RSA:
     else:
       return self._gcd(b, self._leftover(a, b))
 
+  def _key_legal(self, key):
+    if not type(key) is tuple:
+      raise RuntimeError(f"Expected key to be a Tuple.")
+    if not type(key[0]) is int:
+      raise RuntimeError(f"Expected key to contain int as the first value.")
+    if not type(key[1]) is int:
+      raise RuntimeError(f"Expected key to contain int as the second value.")
+    if not key[0] > 0 or not key[0] < key[1]:
+      raise RuntimeError(f"Expected key's index value to be in range (0, reduced_residual_set") 
+
   def _primary_numbers_valid(self):
     # Tested
-    err_msg = "RSA failed at reduced_residual_set()."
-    if self.primary_first is None or self.primary_first < 2:
-      raise RuntimeError(err_msg + "\nSet first primary number greater than 1")
-    if self.primary_second is None or self.primary_second < 2:
-      raise RuntimeError(err_msg + "\nSet second primary number greater than 1")
+    if self.primary_first is None or not type(self.primary_first) is int:
+      raise RuntimeError("Expected first primary number to be an int")
+    if self.primary_first < 2:
+      raise RuntimeError("Expected first primary number to be greater than 1")
+    if self.primary_second is None or not type(self.primary_second) is int:
+      raise RuntimeError("Expected second primary number to be an int")
+    if self.primary_second < 2:
+      raise RuntimeError("Expected second primary number to be greater than 1")
     if self.primary_first * self.primary_second < 201:
-      raise RuntimeError(err_msg + "\nN has to be greater than 200")
+      raise RuntimeError("Expected N to be greater than 200")
 
   def _private_index_gen(self):
     # Tested
@@ -149,7 +204,7 @@ class RSA:
     return result
 
   def _public_index_gen(self):
-    # No test
+    # Tested
     result = None
     while result is None:
       potential_result = random.randint(2, self.reduced_residual_set - 1)
