@@ -38,8 +38,8 @@ class RSA:
   @property
   def n(self):
     # Tested
-    self._primary_numbers_valid()
     if self._n is None:
+      self._primary_numbers_valid()
       self._n = self.primary_first * self.primary_second
     return self._n
 

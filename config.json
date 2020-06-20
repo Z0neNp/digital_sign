@@ -1,0 +1,9 @@
+{
+  "file_with_encrypted_message": "./assets/encrypted_message.txt",
+  "file_with_plain_message": "./assets/plain_message.txt",
+  "hash_ceil_value": 10000,
+  "primary_first": 13,
+  "primary_second": 19,
+  "public_index": 149,
+  "N": 247
+}
